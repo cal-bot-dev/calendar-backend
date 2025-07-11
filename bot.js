@@ -11,7 +11,8 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const USERS_FILE = path.join(__dirname, 'telegram_users.json');
+const USERS_FILE = path.join(__dirname, 'data', 'telegram_users.json');
+
 
 const bot = new Telegraf(BOT_TOKEN);
 
