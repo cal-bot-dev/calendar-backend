@@ -11,8 +11,15 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+// مسیر فایل کاربران
+const dataDir = path.join(__dirname, 'data');
 const USERS_FILE = path.join(__dirname, 'data', 'telegram_users.json');
 
+// 🗂️ اگر پوشه data وجود نداشت، ایجادش کن
+if (!fs.existsSync(dataDir)) {
+    console.log("📁 پوشه data وجود ندارد، ایجاد می‌شود...");
+    fs.mkdirSync(dataDir, { recursive: true });
+}
 
 const bot = new Telegraf(BOT_TOKEN);
 
