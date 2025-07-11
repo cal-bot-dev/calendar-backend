@@ -1,31 +1,67 @@
 require('dotenv').config();
 const { Telegraf } = require('telegraf');
+const fs = require('fs');
 const express = require('express');
+const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+app.use(cors());
+app.use(express.json());
 
-// راه‌اندازی ربات تلگرام
-const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
+const PORT = process.env.PORT || 3001;
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const USERS_FILE = 'telegram_users.json';
 
+const bot = new Telegraf(BOT_TOKEN);
+
+// 📦 خواندن کاربران ثبت‌شده
+function loadUsers() {
+    try {
+        const data = fs.readFileSync(USERS_FILE, 'utf8');
+        return JSON.parse(data);
+    } catch (err) {
+        console.log('🔔 فایل کاربران پیدا نشد، فایل جدید ساخته می‌شود');
+        return [];
+    }
+}
+
+// 💾 ذخیره کاربران
+function saveUsers(users) {
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+}
+
+// 🤖 وقتی کاربر start می‌زند
 bot.start((ctx) => {
-    ctx.reply('سلام 👋 خوش آمدید! شما با موفقیت ثبت شدید.');
-    // اینجا می‌تونی chat_id رو ذخیره کنی
+    const users = loadUsers();
+    const existingUser = users.find((u) => u.chat_id === ctx.chat.id);
+
+    if (existingUser) {
+        ctx.reply('✅ شما قبلاً ثبت‌نام کرده‌اید.');
+    } else {
+        const newUser = {
+            chat_id: ctx.chat.id,
+            full_name: `${ctx.from.first_name || ''} ${ctx.from.last_name || ''}`,
+            username: ctx.from.username || '',
+            phone: '' // شماره‌اش را بعداً از API سمت فرانت ذخیره می‌کنیم
+        };
+        users.push(newUser);
+        saveUsers(users);
+        ctx.reply('🎉 خوش آمدید! شما با موفقیت ثبت شدید.');
+        console.log(`✅ کاربر جدید ثبت شد: ${ctx.chat.id}`);
+    }
 });
 
-bot.launch()
-    .then(() => console.log('✅ Telegram bot is running'))
-    .catch((err) => console.error('❌ Error starting the bot:', err));
-
-// راه‌اندازی یک API ساده برای Render
-app.get('/', (req, res) => {
-    res.send('🎉 Telegram bot is running!');
+// 🌐 API دریافت کاربران (برای تست)
+app.get('/users', (req, res) => {
+    const users = loadUsers();
+    res.json(users);
 });
 
+// 🚀 راه‌اندازی سرور
 app.listen(PORT, () => {
-    console.log(`🌐 Server is listening on port ${PORT}`);
+    console.log(`✅ Backend running on http://localhost:${PORT}`);
 });
 
-// جلوگیری از خاموش شدن بات
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+// ⏯️ اجرای ربات
+bot.launch();
+console.log('🤖 Bot started...');
