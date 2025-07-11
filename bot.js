@@ -8,15 +8,15 @@ const path = require('path');
 // const proxyUrl = 'http://127.0.0.1:52516'; // آدرس HTTP Proxy سایفون
 // const agent = new HttpsProxyAgent(proxyUrl);
 
-const botToken = process.env.TELEGRAM_BOT_TOKEN;
-if (!botToken) {
-    console.error('❌ Bot token is missing in .env');
-    process.exit(1);
-}
+const bot = new Telegraf (process.env.TELEGRAM_BOT_TOKEN) ;
+// if (!botToken) {
+//     console.error('❌ Bot token is missing in .env');
+//     process.exit(1);
+// }
 
-const bot = new Telegraf(botToken, {
-    telegram: { agent }
-});
+// const bot = new Telegraf(botToken, {
+//     telegram: { agent }
+// });
 
 // 📂 مدیریت فایل کاربران
 const usersFilePath = path.join(__dirname, 'telegram_users.json');
