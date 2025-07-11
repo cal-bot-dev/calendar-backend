@@ -2,11 +2,11 @@ require('dotenv').config();
 const { Telegraf } = require('telegraf');
 const fs = require('fs');
 const path = require('path');
-const { HttpsProxyAgent } = require('https-proxy-agent');
+// const { HttpsProxyAgent } = require('https-proxy-agent');
 
 // 📌 تنظیم پراکسی سایفون
-const proxyUrl = 'http://127.0.0.1:52516'; // آدرس HTTP Proxy سایفون
-const agent = new HttpsProxyAgent(proxyUrl);
+// const proxyUrl = 'http://127.0.0.1:52516'; // آدرس HTTP Proxy سایفون
+// const agent = new HttpsProxyAgent(proxyUrl);
 
 const botToken = process.env.TELEGRAM_BOT_TOKEN;
 if (!botToken) {
