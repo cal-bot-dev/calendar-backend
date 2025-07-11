@@ -1,60 +1,31 @@
 require('dotenv').config();
 const { Telegraf } = require('telegraf');
-const fs = require('fs');
-const path = require('path');
-// const { HttpsProxyAgent } = require('https-proxy-agent');
+const express = require('express');
 
-// 📌 تنظیم پراکسی سایفون
-// const proxyUrl = 'http://127.0.0.1:52516'; // آدرس HTTP Proxy سایفون
-// const agent = new HttpsProxyAgent(proxyUrl);
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-const bot = new Telegraf (process.env.TELEGRAM_BOT_TOKEN) ;
-// if (!botToken) {
-//     console.error('❌ Bot token is missing in .env');
-//     process.exit(1);
-// }
+// راه‌اندازی ربات تلگرام
+const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
-// const bot = new Telegraf(botToken, {
-//     telegram: { agent }
-// });
-
-// 📂 مدیریت فایل کاربران
-const usersFilePath = path.join(__dirname, 'telegram_users.json');
-
-function loadUsers() {
-    if (fs.existsSync(usersFilePath)) {
-        const data = fs.readFileSync(usersFilePath);
-        return JSON.parse(data);
-    }
-    return [];
-}
-
-function saveUsers(users) {
-    fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
-}
-
-// 🎯 شروع تعامل
 bot.start((ctx) => {
-    const chatId = ctx.chat.id;
-    const username = ctx.from.username || 'کاربر ناشناس';
-
-    let users = loadUsers();
-    const alreadyRegistered = users.some(u => u.chatId === chatId);
-
-    if (alreadyRegistered) {
-        ctx.reply(`✅ سلام ${username}!\nشما قبلاً ثبت‌نام کرده‌اید.`);
-    } else {
-        users.push({
-            chatId: chatId,
-            username: username,
-            registeredAt: new Date().toISOString()
-        });
-        saveUsers(users);
-        ctx.reply(`🎉 سلام ${username}!\nشما با موفقیت ثبت شدید.`);
-    }
+    ctx.reply('سلام 👋 خوش آمدید! شما با موفقیت ثبت شدید.');
+    // اینجا می‌تونی chat_id رو ذخیره کنی
 });
 
-// 🟢 اجرای ربات
 bot.launch()
-    .then(() => console.log('🤖 Bot is running with proxy...'))
-    .catch(err => console.error('❌ Error starting the bot:', err));
+    .then(() => console.log('✅ Telegram bot is running'))
+    .catch((err) => console.error('❌ Error starting the bot:', err));
+
+// راه‌اندازی یک API ساده برای Render
+app.get('/', (req, res) => {
+    res.send('🎉 Telegram bot is running!');
+});
+
+app.listen(PORT, () => {
+    console.log(`🌐 Server is listening on port ${PORT}`);
+});
+
+// جلوگیری از خاموش شدن بات
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));
