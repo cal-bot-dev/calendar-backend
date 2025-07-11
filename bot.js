@@ -1,6 +1,7 @@
 require('dotenv').config();
 const { Telegraf } = require('telegraf');
 const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 
@@ -10,24 +11,33 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3001;
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const USERS_FILE = 'telegram_users.json';
+const USERS_FILE = path.join(__dirname, 'telegram_users.json');
 
 const bot = new Telegraf(BOT_TOKEN);
 
 // 📦 خواندن کاربران ثبت‌شده
 function loadUsers() {
     try {
+        if (!fs.existsSync(USERS_FILE)) {
+            console.log('📂 فایل کاربران وجود ندارد، ایجاد می‌شود...');
+            fs.writeFileSync(USERS_FILE, '[]');
+        }
         const data = fs.readFileSync(USERS_FILE, 'utf8');
         return JSON.parse(data);
     } catch (err) {
-        console.log('🔔 فایل کاربران پیدا نشد، فایل جدید ساخته می‌شود');
+        console.error('❌ خطا در خواندن فایل کاربران:', err);
         return [];
     }
 }
 
 // 💾 ذخیره کاربران
 function saveUsers(users) {
-    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+    try {
+        fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+        console.log('✅ اطلاعات کاربران با موفقیت ذخیره شد.');
+    } catch (err) {
+        console.error('❌ خطا در ذخیره فایل کاربران:', err);
+    }
 }
 
 // 🤖 وقتی کاربر start می‌زند
@@ -37,12 +47,13 @@ bot.start((ctx) => {
 
     if (existingUser) {
         ctx.reply('✅ شما قبلاً ثبت‌نام کرده‌اید.');
+        console.log(`ℹ️ کاربر ${ctx.chat.id} قبلاً ثبت‌نام کرده است.`);
     } else {
         const newUser = {
             chat_id: ctx.chat.id,
             full_name: `${ctx.from.first_name || ''} ${ctx.from.last_name || ''}`,
             username: ctx.from.username || '',
-            phone: '' // شماره‌اش را بعداً از API سمت فرانت ذخیره می‌کنیم
+            phone: '' // شماره‌اش بعداً از سمت فرانت اضافه می‌شود
         };
         users.push(newUser);
         saveUsers(users);
